@@ -1,0 +1,13 @@
+{
+  "name": "readln-web",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -n \"BACKEND,FRONTEND\" -c \"blue,green\" \"npm run dev --prefix readln-backend\" \"npm run dev --prefix readln-frontend\"",
+    "dev:be": "npm run dev --prefix readln-backend",
+    "dev:fe": "npm run dev --prefix readln-frontend"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

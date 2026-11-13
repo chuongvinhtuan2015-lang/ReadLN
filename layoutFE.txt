@@ -1,0 +1,192 @@
+================================================================================
+KIẾN TRÚC FRONTEND REACT (VITE) - DỰ ÁN ĐỌC TRUYỆN READLN
+Tiêu chuẩn: NIST CSF 1.1 | Ảnh bìa chữ | Chống cào | Chống sao chép | Chống DDoS
+================================================================================
+
+1. CẤU TRÚC THƯ MỤC DỰ ÁN (readln-frontend)
+--------------------------------------------------------------------------------
+readln-frontend/
+├── public/                             # Favicon, icon SVG tĩnh (không chứa ảnh bìa truyện)
+├── index.html                          # Entry HTML (Cấu hình sẵn thẻ meta CSP chống XSS/Inject)
+├── package.json                        # react, react-router-dom, axios, dompurify, lucide-react, tailwindcss
+├── vite.config.ts                      # Cấu hình Vite & Proxy API trỏ về Node.js Backend (localhost:5000)
+└── src/
+    ├── main.tsx                        # Điểm khởi chạy ứng dụng React
+    ├── App.tsx                         # Khai báo React Router, AuthProvider & LockdownBanner toàn cục
+    │
+    ├── pages/                          # CÁC MÀN HÌNH CHÍNH (REACT ROUTER)
+    │   ├── HomePage.tsx                # Trang chủ dạng Lưới (Grid) với 2 bộ lọc: "Mới Nhất" & "Đọc Nhiều", chữ to rõ ràng
+    │   │
+    │   ├── auth/                       # Nhóm màn hình xác thực tài khoản
+    │   │   ├── LoginPage.tsx           # Đăng nhập (Hiển thị đếm ngược khi bị khóa tạm thời do nhập sai)
+    │   │   ├── RegisterPage.tsx        # Đăng ký (Kiểm tra độ mạnh mật khẩu + bẫy Honeypot chống bot)
+    │   │   ├── ForgotPasswordPage.tsx  # Yêu cầu khôi phục mật khẩu qua email
+    │   │   └── ResetPasswordPage.tsx   # Đặt lại mật khẩu mới bằng token xác thực
+    │   │
+    │   ├── stories/                    # Nhóm màn hình xem & đọc truyện
+    │   │   ├── StoryDetailPage.tsx     # Chi tiết truyện (Bìa chữ, tóm tắt, lưu truyện, đánh giá, bình luận)
+    │   │   ├── ChapterReaderPage.tsx   # Đọc chương (1 màu nền liền mạch, lề px linh hoạt, cụm phím nổi bên phải, mục lục Arc bên trái, bình luận cuối chap)
+    │   │   └── CategoryPage.tsx        # Danh sách truyện theo thể loại (tiêu đề gọn, tập trung bộ lọc tag)
+    │   │
+    │   ├── SearchPage.tsx              # Tìm kiếm truyện (Tích hợp Debounce chống spam request)
+    │   ├── BookmarksPage.tsx           # Tủ truyện cá nhân đã lưu (Yêu cầu đăng nhập)
+    │   ├── ChangePasswordPage.tsx      # Đổi mật khẩu người dùng
+    │   │
+    │   └── admin/                      # KHU VỰC QUẢN TRỊ VIÊN (ADMIN PORTAL - PHÂN QUYỀN RBAC)
+    │       ├── AdminDashboardPage.tsx  # [DETECT] Tổng quan hệ thống & cảnh báo bất thường 24h
+    │       ├── AdminStoriesPage.tsx    # Quản lý truyện & chương (Thêm, sửa, xóa mềm is_deleted)
+    │       ├── AdminUsersPage.tsx      # [IDENTIFY/PROTECT] Quản lý người dùng, khóa/mở & phân quyền Role
+    │       ├── AdminLogsPage.tsx       # [DETECT] Xem nhật ký Audit Logs & công cụ truy vết kẻ leak truyện
+    │       └── AdminOperationsPage.tsx # [RESPOND/RECOVER] Khóa IP, Nút khẩn cấp Kill-Switch, Khôi phục & Backup
+    │
+    ├── components/                     # CÁC COMPONENT TÁI SỬ DỤNG
+    │   ├── layout/
+    │   │   ├── MainLayout.tsx          # Bố cục người đọc (Navbar + LockdownBanner + Footer)
+    │   │   ├── AdminLayout.tsx         # Bố cục quản trị (AdminSidebar + kiểm tra quyền ADMIN)
+    │   │   ├── Navbar.tsx              # Thanh điều hướng (Logo, Thể loại, Tìm kiếm, Tủ truyện, Tài khoản)
+    │   │   ├── Footer.tsx              # Chân trang
+    │   │   └── LockdownBanner.tsx      # [RESPOND] Banner cảnh báo đỏ khi bật chế độ Chỉ đọc khẩn cấp
+    │   │
+    │   ├── story/
+    │   │   ├── TextCover.tsx           # [UI] Tạo ảnh bìa tự động bằng chữ cái đầu + Gradient theo thể loại
+    │   │   ├── StoryHeader.tsx         # Thông tin tổng quan truyện (Dùng TextCover, tác giả, thể loại, view)
+    │   │   ├── BookmarkButton.tsx      # Nút lưu / bỏ lưu truyện vào tủ
+    │   │   ├── RatingWidget.tsx        # Đánh giá 1-5 sao & hiển thị điểm trung bình
+    │   │   ├── ChapterList.tsx         # Danh sách các chương của truyện
+    │   │   └── CommentSection.tsx      # [PROTECT] Khung bình luận (Lọc sạch mã độc XSS qua DOMPurify)
+    │   │
+    │   ├── reader/
+    │   │   ├── AntiCopyWrapper.tsx     # [ANTI-COPY] Chặn chuột phải, bôi đen, Ctrl+C/U/S/P, F12 & in trang
+    │   │   ├── ChapterContent.tsx      # [ANTI-SCRAPE] Giải mã nội dung từ API + chèn Watermark ký tự ẩn
+    │   │   └── FloatingReaderNav.tsx   # Cụm phím nổi bên phải (Lùi, Home, Tùy chỉnh A [cỡ chữ, lề px, font, theme, line-height], Mục lục i, Tới)
+    │   │
+    │   ├── admin/
+    │   │   ├── KillSwitchModal.tsx     # [RESPOND] Xác nhận bật/tắt chế độ khẩn cấp (Read-only mode)
+    │   │   ├── IpBlacklistTable.tsx    # [RESPOND] Quản lý danh sách IP bị chặn do DDoS/Spam
+    │   │   ├── TrashRestoreTable.tsx   # [RECOVER] Khôi phục truyện/chương/bình luận đã xóa mềm
+    │   │   ├── BackupTriggerCard.tsx   # [RECOVER] Kích hoạt xuất bản sao lưu cơ sở dữ liệu
+    │   │   └── WatermarkDecoder.tsx    # [DETECT] Giải mã đoạn văn bản bị leak để tìm User ID thủ phạm
+    │   │
+    │   └── ui/
+    │       ├── HoneypotField.tsx       # [ANTI-DDOS/BOT] Ô input ẩn bẫy bot tự động điền form
+    │       └── RateLimitAlert.tsx      # [ANTI-DDOS] Thông báo đếm ngược khi dính giới hạn tốc độ (429)
+    │
+    ├── routes/
+    │   └── ProtectedRoute.tsx          # [PROTECT] Bảo vệ route yêu cầu đăng nhập hoặc quyền ADMIN
+    │
+    ├── contexts/
+    │   └── AuthContext.tsx             # Lưu trạng thái User, Role & cờ isLockdownMode của hệ thống
+    │
+    ├── hooks/
+    │   └── useDebounce.ts              # [ANTI-DDOS] Trì hoãn gọi API khi gõ tìm kiếm (giảm tải server)
+    │
+    └── lib/                            # CÁC MODULE XỬ LÝ BẢO MẬT PHÍA CLIENT
+        ├── api.ts                      # Cấu hình Axios: HttpOnly Cookie, ký Nonce/Timestamp, bắt lỗi 429 & 503
+        ├── watermark.ts                # Nhúng/Giải mã ID người đọc bằng ký tự vô hình (Zero-Width Unicode)
+        ├── contentDecoder.ts           # Giải mã nội dung chương được mã hóa từ Backend trước khi hiển thị
+        └── sanitize.ts                 # Bọc thư viện DOMPurify lọc sạch HTML/JS độc hại trước khi render
+
+================================================================================
+2. CHI TIẾT TRIỂN KHAI CÁC TIÊU CHÍ KỸ THUẬT TRÊN FRONTEND
+================================================================================
+
+[A] ẢNH BÌA TẠO BẰNG CHỮ (TextCover.tsx)
+- Không tải hay lưu trữ file ảnh bìa nhị phân (.jpg/.png), giảm 100% băng thông ảnh.
+- Tự động tách 2 chữ cái đầu của tên truyện (VD: "Biên Niên Sử Arcana" -> "BN") làm chữ chủ đạo (Monogram) đặt giữa khung tỷ lệ 2:3.
+- Màu nền Gradient và họa tiết khung được sinh tự động dựa trên mã thể loại (Isekai: tím-xanh, Hành động: đỏ-cam, Đời thường: xanh ngọc...) kèm tên truyện và tên tác giả in sắc nét bên dưới.
+
+[B] TIÊU CHÍ CHỐNG CÀO DỮ LIỆU (ANTI-SCRAPING)
+1. Không trả text thuần trên API: Backend mã hóa nội dung chương trước khi gửi; Frontend dùng `contentDecoder.ts` giải mã động trong bộ nhớ RAM ngay lúc render.
+2. Ký xác thực Request (`api.ts`): Mỗi request lấy chương đều đính kèm `X-Request-Timestamp` và `X-Request-Nonce` để ngăn tool cào gọi lặp lại URL cũ.
+3. Chống trình duyệt tự động (Headless Bot): Kiểm tra cờ `navigator.webdriver` và chèn liên kết/trường dữ liệu bẫy (`HoneypotField.tsx`); nếu bot tự động truy cập hoặc điền vào sẽ bị đẩy thẳng vào danh sách chặn IP.
+4. Phân mảnh DOM (`ChapterContent.tsx`): Chia nội dung chương thành các đoạn nhỏ độc lập kèm thuộc tính chống chọn lọc, gây nhiễu cấu trúc HTML đối với các trình thu thập dữ liệu (crawler).
+
+[C] TIÊU CHÍ CHỐNG SAO CHÉP & TRUY VẾT LEAK (ANTI-COPYING)
+1. Khóa thao tác sao chép (`AntiCopyWrapper.tsx`):
+   - Chặn sự kiện chuột phải (`onContextMenu`), bôi đen văn bản (`user-select: none`), kéo thả (`onDragStart`).
+   - Chặn tổ hợp phím tắt: `Ctrl+C` (Copy), `Ctrl+U` (Xem nguồn trang), `Ctrl+S` (Lưu trang), `Ctrl+P` (In trang), `F12` / `Ctrl+Shift+I` (Mở DevTools).
+   - Chặn in ấn bằng CSS `@media print { body { display: none !important; } }`.
+2. Thủy vân tàng hình (`watermark.ts` + `WatermarkDecoder.tsx`):
+   - Khi người dùng đọc chương, hệ thống chuyển đổi `user_id` thành chuỗi nhị phân gồm các ký tự Unicode không độ rộng (`\u200B`, `\u200C`, `\u200D`) và chèn xen kẽ vào giữa các đoạn văn.
+   - Mắt thường không thể nhìn thấy, nhưng nếu kẻ xấu dùng công cụ trích xuất text đem đăng lên web lậu, Admin chỉ cần copy đoạn text lậu đó dán vào `WatermarkDecoder.tsx` để giải mã ra chính xác tài khoản thủ phạm và khóa vĩnh viễn.
+
+[D] TIÊU CHÍ CHỐNG DDOS & SPAM REQUEST (ANTI-DDOS)
+1. Tiết lưu phía Client (`useDebounce.ts`): Ô tìm kiếm và các bộ lọc chỉ gửi request sau khi người dùng ngừng gõ 400ms, ngăn chặn việc xả hàng loạt truy vấn vào MySQL.
+2. Vô hiệu hóa nút bấm khi đang xử lý: Khóa trạng thái nút gửi bình luận, đánh giá, đăng nhập cho tới khi nhận phản hồi xong để chống spam click.
+3. Xử lý mã lỗi giới hạn tốc độ (`HTTP 429 Too Many Requests` trong `api.ts`): Tự động ngắt gửi request tiếp theo và hiển thị component `RateLimitAlert.tsx` yêu cầu chờ hết thời gian hồi (cooldown).
+4. Bẫy Bot (`HoneypotField.tsx`): Chèn trường ẩn bằng CSS trong form Đăng ký/Đăng nhập/Bình luận; người dùng thật không thấy, chỉ bot tự động mới điền và bị loại bỏ ngay lập tức.
+
+================================================================================
+3. ĐỐI CHIẾU CHUẨN BẢO MẬT NIST CSF 1.1 (5 TRỤ CỘT)
+================================================================================
+
+1. IDENTIFY (Nhận diện tài sản & Rủi ro):
+   - Phân tách rõ 3 vùng tài nguyên trên Router: Công khai (`/`, `/stories/*`), Người dùng đã xác thực (`/bookmarks`, `/profile/*`), và Quản trị viên (`/admin/*`).
+   - Thiết lập chính sách bảo mật nội dung (Content Security Policy - CSP) ngay trong `index.html` để kiểm soát chặt nguồn script và kết nối API được phép chạy.
+
+2. PROTECT (Bảo vệ hệ thống & Dữ liệu):
+   - Xác thực an toàn: Lưu phiên đăng nhập bằng `HttpOnly Cookie` (`withCredentials: true` trong `api.ts`), ngăn chặn đánh cắp token qua JavaScript.
+   - Kiểm soát truy cập theo vai trò (RBAC): Component `ProtectedRoute.tsx` chặn truy cập trái phép vào các trang quản trị nếu không có quyền `ADMIN`.
+   - Chống tấn công XSS: Toàn bộ dữ liệu đầu vào (bình luận, tìm kiếm) được làm sạch qua `DOMPurify` (`sanitize.ts`) trước khi hiển thị.
+   - Bảo vệ bản quyền nội dung: Áp dụng `AntiCopyWrapper.tsx`, `contentDecoder.ts` và `watermark.ts`.
+
+3. DETECT (Phát hiện bất thường & Giám sát):
+   - Màn hình `AdminDashboardPage.tsx`: Hiển thị chỉ số cảnh báo an ninh 24h (số lần đăng nhập thất bại, số request bị chặn 429, số bình luận bị gắn cờ).
+   - Màn hình `AdminLogsPage.tsx`: Truy xuất và lọc trực tiếp bảng `audit_logs` theo địa chỉ IP, hành động, mã trạng thái HTTP để phát hiện hành vi dò quét hoặc tấn công brute-force.
+   - Công cụ `WatermarkDecoder.tsx`: Phát hiện và định danh tài khoản phát tán nội dung trái phép.
+
+4. RESPOND (Phản ứng & Ngăn chặn sự cố):
+   - Chế độ khẩn cấp Kill-Switch (`KillSwitchModal.tsx` + `LockdownBanner.tsx`): Khi phát hiện tấn công diện rộng, Admin kích hoạt chế độ Chỉ đọc (Read-only). Toàn bộ hệ thống chuyển sang trạng thái khóa tương tác (đăng ký, bình luận, đánh giá bị vô hiệu hóa, API trả về mã `503`), chỉ giữ lại tính năng đọc truyện.
+   - Chặn IP chủ động (`IpBlacklistTable.tsx`): Admin thêm trực tiếp các IP spam/DDoS vào danh sách đen (`ip_blacklists`) để từ chối phục vụ ngay từ lớp ngoài.
+
+5. RECOVER (Phục hồi hoạt động & Dữ liệu):
+   - Khôi phục dữ liệu xóa mềm (`TrashRestoreTable.tsx`): Cho phép Admin phục hồi nguyên vẹn các bộ truyện, chương hoặc bình luận bị xóa nhầm hoặc bị phá hoại thông qua cờ `is_deleted`.
+   - Sao lưu cơ sở dữ liệu (`BackupTriggerCard.tsx`): Kích hoạt tạo và tải về bản sao lưu dữ liệu MySQL định kỳ/khẩn cấp.
+   - Khôi phục quyền truy cập tài khoản: Luồng `ForgotPasswordPage.tsx` và `ResetPasswordPage.tsx` sử dụng token một lần có thời hạn.
+
+================================================================================
+4. ĐẶC TẢ CHI TIẾT TRẢI NGHIỆM ĐỌC & TRANG CHỦ (ĐÃ DUYỆT CHUẨN UI)
+================================================================================
+
+[A] TRANG CHỦ (HomePage.tsx)
+1. Bố cục dạng Lưới (Grid): Loại bỏ các dòng phụ rườm rà, tập trung hiển thị trực quan các bộ truyện với bìa chữ Monogram kích thước vừa (md).
+2. Hai bộ lọc chính:
+   - "Mới Nhất": Sắp xếp giảm dần theo mốc thời gian cập nhật chương mới nhất.
+   - "Đọc Nhiều": Sắp xếp giảm dần theo tổng lượt đọc (views).
+3. Typography: Tên truyện in đậm, to rõ (text-base đến text-lg), các thông số hiển thị dễ nhìn.
+
+[B] TRANG ĐỌC CHƯƠNG (ChapterReaderPage.tsx)
+1. Thiết kế nền phẳng duy nhất (Single Flat Canvas): Không chia khối khung thẻ card, toàn bộ trang dùng một màu nền liền mạch (Mặc định Giấy ngà #F6F4EF, Sepia #F4ECD8, Trắng #FFFFFF, Tối #181A1B).
+2. Khoảng cách lề 2 bên rộng và tinh chỉnh từng pixel:
+   - Mặc định văn bản mở rộng sát 2 bên (80px).
+   - Menu tùy biến "A" cho phép tăng/giảm khoảng cách lề theo từng 1px với giá trị hiển thị ở giữa.
+3. Cụm phím nổi bên phải (Right Floating Toolbar):
+   - Kích thước to (w-12 h-12) gồm 5 nút: Lùi chương, Home (Trang chủ), Tùy chỉnh "A", Mục lục "i", Tới chương.
+   - Nút "A": Mở popup tùy chỉnh Cỡ chữ (px), Khoảng cách lề (px), Khoảng cách dòng (Line-height), Font chữ (Sans/Serif/Mono), và Theme màu nền.
+   - Nút "i": Mở Drawer danh mục chương bên trái; phía trên có khối Header truyện (Bìa, tên, tác giả) bấm để về lại trang chi tiết truyện; nội dung chia theo Arc.
+   - Cơ chế tự động đóng: Bấm vào vùng giữa màn hình sẽ tự động đóng Drawer mục lục hoặc popup tùy chỉnh.
+4. Cuối chương: Loại bỏ phần đánh giá sao, tích hợp trực tiếp Khung bình luận (CommentSection) có lọc XSS và chống bot.
+================================================================================
+
+4. ĐẶC TẢ CHI TIẾT TRẢI NGHIỆM ĐỌC & TRANG CHỦ (ĐÃ DUYỆT CHUẨN UI)
+================================================================================
+
+[A] TRANG CHỦ (HomePage.tsx)
+1. Bố cục dạng Lưới (Grid): Loại bỏ các dòng phụ rườm rà, tập trung hiển thị trực quan các bộ truyện với bìa chữ Monogram kích thước vừa (md).
+2. Hai bộ lọc chính:
+   - "Mới Nhất": Sắp xếp giảm dần theo mốc thời gian cập nhật chương mới nhất.
+   - "Đọc Nhiều": Sắp xếp giảm dần theo tổng lượt đọc (views).
+3. Typography: Tên truyện in đậm, to rõ (text-base đến text-lg), các thông số hiển thị dễ nhìn.
+
+[B] TRANG ĐỌC CHƯƠNG (ChapterReaderPage.tsx)
+1. Thiết kế nền phẳng duy nhất (Single Flat Canvas): Không chia khối khung thẻ card, toàn bộ trang dùng một màu nền liền mạch (Mặc định Giấy ngà #F6F4EF, Sepia #F4ECD8, Trắng #FFFFFF, Tối #181A1B).
+2. Khoảng cách lề 2 bên rộng và tinh chỉnh từng pixel:
+   - Mặc định văn bản mở rộng sát 2 bên (80px).
+   - Menu tùy biến "A" cho phép tăng/giảm khoảng cách lề theo từng 1px với giá trị hiển thị ở giữa.
+3. Cụm phím nổi bên phải (Right Floating Toolbar):
+   - Kích thước to (w-12 h-12) gồm 5 nút: Lùi chương, Home (Trang chủ), Tùy chỉnh "A", Mục lục "i", Tới chương.
+   - Nút "A": Mở popup tùy chỉnh Cỡ chữ (px), Khoảng cách lề (px), Khoảng cách dòng (Line-height), Font chữ (Sans/Serif/Mono), và Theme màu nền.
+   - Nút "i": Mở Drawer danh mục chương bên trái; phía trên có khối Header truyện (Bìa, tên, tác giả) bấm để về lại trang chi tiết truyện; nội dung chia theo Arc.
+   - Cơ chế tự động đóng: Bấm vào vùng giữa màn hình sẽ tự động đóng Drawer mục lục hoặc popup tùy chỉnh.
+4. Cuối chương: Loại bỏ phần đánh giá sao, tích hợp trực tiếp Khung bình luận (CommentSection) có lọc XSS và chống bot.
+================================================================================

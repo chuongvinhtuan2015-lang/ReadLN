@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+*/node_modules/
+
+# Environment variables (Cực kỳ quan trọng: Không đẩy password/secret lên GitHub)
+.env
+.env.*
+!.env.example
+readln-backend/.env
+readln-frontend/.env
+
+# Build outputs
+dist/
+build/
+*/dist/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Temp files
+*.tmp
+*.bak
+check_time.ts
+
