@@ -12,8 +12,8 @@ export const lockdownMiddleware = async (req: Request, res: Response, next: Next
     return next();
   }
 
-  // Bỏ qua route admin bật/tắt lockdown
-  if (req.originalUrl.includes('/admin/operations/lockdown')) {
+  // Bỏ qua các route quản trị liên quan đến admin (bao gồm bật/tắt lockdown)
+  if (req.originalUrl.includes('/admin/lockdown') || req.originalUrl.includes('/admin/operations/lockdown')) {
     return next();
   }
 
