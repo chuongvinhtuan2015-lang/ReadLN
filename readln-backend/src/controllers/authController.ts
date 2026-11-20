@@ -88,6 +88,12 @@ export class AuthController {
           data: updateData,
         });
 
+        // DETECT -> TỰ ĐỘNG RESPOND
+        const clientIp = (req.headers['x-forwarded-for'] as string)?.split(',')[0].trim() || req.ip || '127.0.0.1';
+        import('../services/autoResponseService').then(({ AutoResponseService }) => {
+          AutoResponseService.handleThreatEvent(clientIp, 'AUTH_FAILED', `Nhập sai mật khẩu cho email: ${email}`);
+        }).catch(() => {});
+
         return sendError(res, 'Email hoặc mật khẩu không chính xác.', 401);
       }
 

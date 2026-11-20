@@ -329,9 +329,28 @@ export class AdminController {
   }
 
   /**
-   * Trigger backup cơ sở dữ liệu
+   * Trigger backup cơ sở dữ liệu thật (NIST CSF: RECOVER)
+   * Xuất file .sql hoàn chỉnh kèm nén gzip để người dùng tải về
    */
   static async triggerBackup(req: Request, res: Response) {
-    return sendSuccess(res, { file: 'readln_backup_latest.sql.gz' }, 'Đã xuất bản sao lưu thành công.');
+    try {
+      const { BackupService } = await import('../services/backupService');
+      const zlib = await import('zlib');
+      
+      const sqlContent = await BackupService.generateSqlDump();
+      const compressedBuffer = zlib.gzipSync(Buffer.from(sqlContent, 'utf8'));
+
+      const now = new Date();
+      const dateStr = now.toISOString().slice(0, 10);
+      const filename = `readln_mysql_backup_${dateStr}.sql.gz`;
+
+      res.setHeader('Content-Type', 'application/gzip');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.setHeader('Content-Length', compressedBuffer.length);
+
+      return res.send(compressedBuffer);
+    } catch (error) {
+      return sendError(res, 'Không thể tạo bản sao lưu cơ sở dữ liệu lúc này.', 500, error);
+    }
   }
 }
