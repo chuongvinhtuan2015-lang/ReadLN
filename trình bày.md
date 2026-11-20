@@ -8,130 +8,106 @@
 ---
 
 ## 📌 CÔNG THỨC TRÌNH BÀY CHO TỪNG TIÊU CHÍ
-Mỗi trụ cột được cấu trúc theo 3 phần rõ ràng:
-1. **Mục tiêu trụ cột (NIST CSF 1.1)**: Chuẩn yêu cầu bảo vệ điều gì.
-2. **Web ReadLN đã làm gì để thỏa mãn**: Chi tiết mã nguồn, công nghệ và cơ chế đã code thực tế trong dự án.
-3. **Lời thoại gợi ý khi thuyết trình**: Ngắn gọn, súc tích, tự tin trả lời hội đồng.
+Mỗi trụ cột được cấu trúc theo 3 phần ngắn gọn, đúng trọng tâm:
+1. **Nội dung chính trên Slide:** Các đầu việc chính đã thực hiện.
+2. **Chi tiết mã nguồn & cơ chế trên Web ReadLN:** Minh chứng kỹ thuật.
+3. **Lời thoại gợi ý khi thuyết trình:** Câu trả lời tự tin, mạch lạc trước hội đồng.
 
 ---
 
-### TRỤ CỘT 1: IDENTIFY (Nhận Diện Tài Sản, Bề Mặt Tấn Công & Rủi Ro)
+### TRỤ CỘT 1: IDENTIFY (Nhận Diện)
 
-#### 1. Mục tiêu tiêu chuẩn:
-Xác định danh mục tài sản, luồng dữ liệu nhạy cảm, bề mặt tấn công của hệ thống và đánh giá các lỗ hổng bảo mật tiềm ẩn.
+#### 1. Trên Slide ghi gì:
+* **Quét lỗ hổng bằng OWASP ZAP:** Rà quét bề mặt tấn công ứng dụng web (Active & Passive Scan).
+* **Bổ sung HTTP Security Headers:** Khắc phục triệt để các cảnh báo bảo mật trình duyệt (`X-Frame-Options`, `X-Content-Type-Options`, `Content-Security-Policy`).
 
-#### 2. ReadLN đã làm gì để thỏa mãn:
-* **Phân loại 3 phân vùng tài nguyên & dữ liệu rõ ràng trong Database MySQL:**
-  * *Vùng Công Khai (Public):* Bảng `stories`, `chapters`, `genres` – ai cũng có thể xem và đọc.
-  * *Vùng Người Dùng (Authenticated User):* Bảng `users`, `bookmarks`, `ratings`, `comments` – chỉ truy cập được khi đã đăng nhập và được xác thực quyền chủ sở hữu.
-  * *Vùng Quản Trị Hệ Thống (Administrative/Critical):* Bảng `audit_logs`, `ip_blacklists`, `system_settings` – cách ly tuyệt đối bằng phân quyền RBAC `ADMIN`.
-* **Rà quét bề mặt tấn công với công cụ bảo mật quốc tế OWASP ZAP:**
-  * Chủ động quét lỗ hổng ứng dụng web (Active & Passive Scan).
-  * Phát hiện và xử lý triệt để các rủi ro về HTTP Security Headers:
-    * Thêm `X-Frame-Options: DENY` (chống tấn công Clickjacking).
-    * Thêm `X-Content-Type-Options: nosniff` (chống tấn công MIME-sniffing).
-    * Cấu hình chính sách `Content-Security-Policy (CSP)` đầy đủ các directive có fallback: `default-src 'self'`, `base-uri 'self'`, `form-action 'self'`, `frame-ancestors 'none'`, `object-src 'none'`.
-    * Cấu hình `Referrer-Policy: strict-origin-when-cross-origin` và `Permissions-Policy`.
+#### 2. Web ReadLN đã làm gì để thỏa mãn:
+* Sử dụng công cụ quốc tế **OWASP ZAP** quét toàn bộ trang web ở cổng `5173`, phát hiện các nguy cơ tiềm ẩn về thiếu header bảo vệ.
+* Cấu hình đồng bộ trong `vite.config.ts` và `index.html`:
+  * `X-Frame-Options: DENY` (Chặn đứng nguy cơ tấn công Clickjacking).
+  * `X-Content-Type-Options: nosniff` (Ngăn chặn trình duyệt tự ý đoán sai định dạng file MIME-sniffing).
+  * `Content-Security-Policy (CSP)` định nghĩa đầy đủ directive có fallback: `default-src 'self'`, `base-uri 'self'`, `form-action 'self'`, `frame-ancestors 'none'`, `object-src 'none'`.
+  * `Referrer-Policy: strict-origin-when-cross-origin` và `Permissions-Policy`.
 
 #### 3. Lời trình bày thuyết minh:
-> *"Kính thưa thầy/cô, ở trụ cột đầu tiên là **Identify**, em đã lập bản đồ tài nguyên của hệ thống thành 3 phân vùng dữ liệu với mức độ bảo vệ khác nhau trong MySQL. Đồng thời, em sử dụng công cụ tiêu chuẩn ngành **OWASP ZAP** để rà quét bề mặt tấn công của ứng dụng web, qua đó cấu hình toàn diện các HTTP Security Headers và chính sách CSP nghiêm ngặt nhằm kiểm soát chính xác nguồn tài nguyên được phép thực thi."*
+> *"Kính thưa thầy/cô, ở trụ cột đầu tiên là **Identify**, em đã sử dụng công cụ tiêu chuẩn ngành **OWASP ZAP** để rà quét toàn diện bề mặt tấn công của website. Dựa trên kết quả quét, em đã bổ sung đầy đủ bộ HTTP Security Headers như `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff` và thiết lập chính sách Content Security Policy (CSP) nghiêm ngặt để kiểm soát chặt chẽ tài nguyên được phép thực thi."*
 
 ---
 
-### TRỤ CỘT 2: PROTECT (Bảo Vệ Hệ Thống & Bản Quyền Nội Dung)
+### TRỤ CỘT 2: PROTECT (Bảo Vệ Chủ Động)
 
-#### 1. Mục tiêu tiêu chuẩn:
-Xây dựng các lớp kiểm soát phòng thủ để đảm bảo tính Bảo mật (Confidentiality), Toàn vẹn (Integrity) và Sẵn sàng (Availability) của dữ liệu.
+#### 1. Trên Slide ghi gì:
+* **Mã hóa nội dung chương trong RAM (Base64 UTF-8):** Chống bot cào đọc trực tiếp văn bản thô từ HTML.
+* **Chống sao chép (AntiCopy):** Khóa chuột phải, chặn các phím tắt sao chép `Ctrl+C`, `Ctrl+U`, `F12`.
+* **Thủy vân ẩn truy vết (Zero-Width Watermark):** Nhúng User ID tàng hình vào văn bản để bảo vệ bản quyền.
+* **Bảo vệ tài khoản:** Băm mật khẩu `Bcrypt` + `HttpOnly Cookie` chống đánh cắp phiên.
 
-#### 2. ReadLN đã làm gì để thỏa mãn:
-* **Xác thực và Quản lý phiên an toàn (Authentication & Session Security):**
-  * Mật khẩu người dùng được băm an toàn bằng `bcryptjs` (salt rounds 10).
-  * Lưu trữ JWT Token trong **`HttpOnly, SameSite=None, Secure Cookie`** – bảo vệ phiên đăng nhập an toàn giữa các domain, chặn đứng hoàn toàn nguy cơ tin tặc đánh cắp token qua tấn công XSS.
-  * Cơ chế phòng chống tấn công dò mật khẩu (Brute Force): Tự động ghi nhận `failed_login_attempts`, nếu nhập sai quá 5 lần sẽ khóa tài khoản trong 15 phút (`lockout_until`).
-* **Kiểm soát truy cập dựa trên vai trò (RBAC - Role-Based Access Control):**
-  * Middleware `rbacMiddleware` kiểm tra nghiêm ngặt quyền hạn giữa `READER`, `AUTHOR` và `ADMIN` trước khi chạm vào API quản trị.
-* **Chống tiêm mã độc (Anti-Injection & XSS Sanitization):**
-  * Sử dụng Prisma ORM với cơ chế Parameterized Queries, loại bỏ 100% rủi ro SQL Injection.
-  * Lọc sạch nội dung bình luận (`comments`) qua thư viện `DOMPurify` / `sanitize-html` trước khi lưu vào MySQL và trước khi render ra DOM để chống Stored XSS.
-* **Bẫy Bot tự động (Honeypot Trap):**
-  * Tại form Đăng ký, Đăng nhập và Bình luận đều nhúng trường ẩn `HoneypotField`. Người dùng thật không nhìn thấy trường này, nhưng spam bot tự động điền dữ liệu sẽ lập tức kích hoạt chu trình tự động cô lập.
-* **Bảo vệ Bản Quyền Nội Dung Chống Cào Dữ Liệu (Anti-Scraping & Anti-Copy):**
-  * **Obfuscation RAM Encryption:** Nội dung chương truyện trong bảng `chapters` được mã hóa Base64 nhị phân UTF-8 an toàn ngay trong bộ nhớ trước khi truyền về client, ngăn chặn các công cụ cào tự động đọc lướt HTML thuần.
-  * **AntiCopyWrapper:** Vô hiệu hóa chuột phải, chặn các phím tắt sao chép nội dung (`Ctrl+C`, `Ctrl+U`, `F12`, `Ctrl+S`).
-  * **Zero-Width Unicode Watermark:** Tự động chèn mã nhị phân tàng hình (sử dụng các ký tự độ rộng bằng 0 như `\u200B`, `\u200C`) chứa mã định danh người dùng (`user.id`) vào xen kẽ nội dung chương. Khi văn bản bị copy lậu ra các trang web khác, người dùng hoàn toàn không nhìn thấy nhưng Admin có thể trích xuất chính xác tài khoản đã leak truyện.
+#### 2. Web ReadLN đã làm gì để thỏa mãn:
+* **Obfuscation RAM Encryption (`cryptoService.ts`):** Nội dung chương truyện trong bảng `chapters` được mã hóa Base64 nhị phân an toàn trong bộ nhớ trước khi truyền về client, ngăn chặn các công cụ cào tự động đọc lướt HTML thuần.
+* **AntiCopyWrapper (`AntiCopyWrapper.tsx`):** Vô hiệu hóa chuột phải (`contextmenu`), chặn các phím tắt sao chép nội dung (`Ctrl+C`, `Ctrl+U`, `F12`, `Ctrl+S`) và tắt tính năng bôi đen văn bản (`select-none`).
+* **Zero-Width Unicode Watermark (`watermarkService.ts`):** Tự động chuyển đổi User ID của người đang đọc thành các ký tự nhị phân độ rộng bằng 0 (`\u200B`, `\u200C`) xen kẽ trong văn bản. Mắt thường không nhìn thấy nhưng mã định danh luôn bám theo nội dung bị copy.
+* **Authentication Security (`authController.ts`):** Băm mật khẩu bằng `bcryptjs` (salt rounds 10) và lưu trữ JWT Token trong **`HttpOnly, Secure, SameSite Cookie`**, loại bỏ hoàn toàn nguy cơ bị mã độc Javascript đánh cắp token qua XSS.
 
 #### 3. Lời trình bày thuyết minh:
-> *"Tại trụ cột **Protect**, thay vì chỉ bảo vệ mức hạ tầng, em xây dựng 3 lớp phòng vệ trực tiếp trong ứng dụng: Bảo vệ tài khoản bằng `HttpOnly Cookie` và khóa tự động khi bị dò mật khẩu; bảo vệ tính toàn vẹn dữ liệu bằng kiểm soát XSS/Honeypot; và đặc biệt nhất là giải pháp bản quyền kép: mã hóa nội dung chương trong RAM kết hợp nhúng thủy vân tàng hình Unicode theo từng User ID để chống nạn cào trộm truyện."*
+> *"Tại trụ cột **Protect**, em xây dựng các lớp phòng vệ chủ động: Bảo vệ tài khoản người dùng bằng mã băm Bcrypt và lưu token trong `HttpOnly Cookie` chống đánh cắp phiên; bảo vệ bản quyền tác phẩm bằng giải pháp ba tầng: mã hóa nội dung chương trong RAM (Base64 UTF-8), khóa chuột phải cùng phím tắt sao chép (Ctrl+C, Ctrl+U, F12), và nhúng thủy vân tàng hình Unicode theo từng User ID để truy vết khi nội dung bị tuồn ra ngoài."*
 
 ---
 
-### TRỤ CỘT 3: DETECT (Phát Hiện Bất Thường & Giám Sát An Ninh)
+### TRỤ CỘT 3: DETECT (Phát Hiện Bất Thường)
 
-#### 1. Mục tiêu tiêu chuẩn:
-Triển khai các cơ chế giám sát liên tục để kịp thời phát hiện các dấu hiệu tấn công, hành vi bất thường và rò rỉ dữ liệu.
+#### 1. Trên Slide ghi gì:
+* **Bẫy Bot Honeypot:** Phát hiện bot tự động điền vào trường ẩn.
+* **Giám sát tần suất truy cập (Rate Limit):** Phát hiện IP spam gửi request dồn dập (vượt quá 120 req/phút).
+* **Phát hiện dò mật khẩu:** Ghi nhận các lần đăng nhập sai liên tiếp từ một IP (`AUTH_FAILED`).
+* **Hệ thống Audit Logs:** Ghi nhận toàn bộ vết tích tấn công và công cụ giải mã Watermark Decoder.
 
-#### 2. ReadLN đã làm gì để thỏa mãn:
-* **Nhật ký an ninh tập trung (`audit_logs` trong MySQL):**
-  * Mọi hành vi nhạy cảm trên hệ thống (đăng nhập thất bại `AUTH_FAILED` HTTP 401, bẫy bot `BOT_HONEYPOT_TRIGGER` HTTP 403, vi phạm tần suất `RATE_LIMIT_BLOCK` HTTP 429, cào truyện `READ_CHAPTER`, các tác vụ Admin) đều được middleware `auditLogger` tự động lưu lại vào MySQL kèm: Địa chỉ IP thực tế (`client_ip`), User Agent, đường dẫn, HTTP status và thời gian chính xác.
-* **Trung tâm giám sát thời gian thực trên `AdminDashboardPage`:**
-  * Bảng điều khiển quản trị thống kê trực quan các cuộc tấn công trong 24 giờ qua (số lượt bị chặn Rate-limit, số lượt nhập sai mật khẩu, số IP đang nằm trong danh sách đen) giúp quản trị viên nắm bắt ngay tình trạng an ninh.
-* **Bộ lọc và phân tích Audit Logs (`AdminLogsPage`):**
-  * Cho phép Admin lọc nhanh theo từng loại hành vi nguy hiểm (`AUTH`, `RATE_LIMIT`, `BOT`, `SCRAPE`, `ADMIN`) để điều tra nguồn gốc tấn công.
-* **Công cụ giải mã truy vết bản quyền (`WatermarkDecoder`):**
-  * Khi phát hiện truyện bị đăng trái phép ở diễn đàn bên ngoài, Admin chỉ cần dán đoạn văn bản đó vào công cụ. Hệ thống sẽ phân tích các bit Zero-Width ẩn và truy vấn trực tiếp cơ sở dữ liệu MySQL để hiển thị: User ID, Username, Email và Quyền hạn của thủ phạm đã sao chép chương đó.
+#### 2. Web ReadLN đã làm gì để thỏa mãn:
+* **Honeypot Trap (`antiBotMiddleware.ts`):** Đặt trường ẩn `company_website` trong các biểu mẫu đăng ký, đăng nhập và bình luận. Người dùng thật không thấy, nhưng bot tự động sẽ điền vào ➔ Hệ thống phát hiện ngay hành vi tự động.
+* **Rate Limit Monitor (`rateLimiter.ts`):** Giám sát lưu lượng truy cập của từng IP theo thời gian thực (giới hạn 120 req/phút cho API chung và 15 lần/15 phút cho API xác thực).
+* **Brute-Force Detection (`authController.ts`):** Theo dõi số lần nhập sai mật khẩu liên tiếp của từng IP/tài khoản và ghi nhận sự kiện `AUTH_FAILED`.
+* **Audit Logs & Decoder (`auditLogger.ts` & `AdminLogsPage.tsx`):** Tự động ghi nhật ký mọi hành vi vào bảng `audit_logs` trong MySQL kèm IP, User-Agent, thời gian. Cung cấp công cụ **Watermark Decoder** để quét giải mã đoạn text nghi vấn bị cào trộm và tra cứu ra tài khoản vi phạm.
 
 #### 3. Lời trình bày thuyết minh:
-> *"Ở trụ cột **Detect**, toàn bộ các sự kiện bất thường đều được ghi nhận tự động vào bảng `audit_logs`. Quản trị viên có bảng điều khiển trực quan để theo dõi các đợt tấn công trong 24h. Đặc biệt, công cụ Watermark Decoder cho phép Admin truy vết ngược từ một đoạn văn bản copy trên mạng để tìm ra chính xác danh tính tài khoản đã tuồn dữ liệu ra ngoài."*
+> *"Ở trụ cột **Detect**, hệ thống triển khai các cảm biến phát hiện bất thường: Dùng bẫy Honeypot để phát hiện bot tự động; dùng Rate Limiter để phát hiện các đợt spam request dồn dập; theo dõi các hành vi dò mật khẩu sai nhiều lần; và ghi nhận toàn bộ dấu vết tấn công vào bảng `audit_logs` tập trung cùng công cụ Watermark Decoder để phát hiện kẻ rò rỉ truyện."*
 
 ---
 
-### TRỤ CỘT 4: RESPOND (Tự Động Phản Ứng Dựa Trên Dấu Hiệu Phát Hiện - DETECT to RESPOND)
+### TRỤ CỘT 4: RESPOND (Tự Động Phản Ứng Dựa Trên DETECT) 🌟
 
-#### 1. Mục tiêu tiêu chuẩn:
-Có biện pháp hành động và ứng phó tức thì khi sự cố an ninh hoặc tấn công xảy ra. Đặc biệt, **chu trình phản ứng (RESPOND) phải vận hành TỰ ĐỘNG dựa trên kết quả phát hiện bất thường (DETECT)** để cô lập nguy cơ mà không cần chờ con người can thiệp thủ công.
+#### 1. Trên Slide ghi gì:
+* **Honeypot ➔ Tự động chặn IP:** DETECT phát hiện bot điền bẫy ➔ RESPOND tự động đưa IP vào Blacklist khóa 24h và ngắt kết nối (HTTP 403).
+* **Chặn IP truy cập nhiều (Spam):** DETECT phát hiện IP vi phạm Rate Limit liên tiếp ➔ RESPOND tự động nâng mức phạt lên khóa IP 1 giờ trong Blacklist.
+* **Phản ứng khẩn cấp (Kill-Switch):** Khi có dấu hiệu tấn công diện rộng, kích hoạt chế độ Chỉ Đọc (Read-Only HTTP 503) để bảo toàn cơ sở dữ liệu.
 
-#### 2. ReadLN đã làm gì để thỏa mãn:
-Hệ thống xây dựng dịch vụ phản ứng tự động **`AutoResponseService`** liên kết trực tiếp với tầng phát hiện `DETECT`:
-* **Tự động chặn IP khi kích hoạt Bẫy Bot Honeypot (Zero-Tolerance Response):**
-  * *Phát hiện (Detect):* Client gửi request có điền giá trị vào trường ẩn `company_website`.
-  * *Tự động phản ứng (Respond):* Hệ thống tự động ghi IP vào bảng `ip_blacklists` với thời hạn khóa 24 giờ, đồng thời ghi log hành vi `AUTO_RESPOND_BLOCK_IP`. Mọi request tiếp theo từ IP này bị ngắt ngay tại cổng với mã HTTP `403 Forbidden`.
-* **Tự động chặn IP khi tấn công dò mật khẩu (Brute-Force Auto-Mitigation):**
-  * *Phát hiện (Detect):* Một IP gửi sai thông tin đăng nhập từ 5 lần trở lên trong vòng 5 phút.
-  * *Tự động phản ứng (Respond):* `AutoResponseService` tự động đưa IP đó vào danh sách đen khóa 2 giờ, ngăn chặn kẻ tấn công đổi sang dò tài khoản khác trên cùng một địa chỉ mạng.
-* **Tự động nâng cấp mức phạt khi vi phạm Rate Limit liên tiếp (Progressive Rate-Limit Penalty):**
-  * *Phát hiện (Detect):* Một IP cố tình spam và nhận mã HTTP 429 liên tục 3 lần trong vòng 3 phút.
-  * *Tự động phản ứng (Respond):* Hệ thống tự động nâng mức phạt từ hạn chế tốc độ (HTTP 429) lên **chặn hoàn toàn truy cập (HTTP 403 trong 1 giờ)**.
-* **Tự động kích hoạt Nút Khẩn Cấp Kill-Switch khi phát hiện DDoS Botnet phân tán:**
-  * *Phát hiện (Detect):* Nếu hệ thống phát hiện từ 10 IP khác nhau cùng đồng loạt vi phạm Rate Limit / tấn công trong vòng 60 giây (dấu hiệu của mạng botnet phân tán).
-  * *Tự động phản ứng (Respond):* `AutoResponseService` **tự động kích hoạt cờ `is_lockdown_mode = true`** trong bảng `system_settings`. Toàn bộ ứng dụng ngay lập tức chuyển sang chế độ **Chỉ Đọc (Read-Only - HTTP 503 cho mọi thao tác ghi)** để bảo toàn toàn vẹn cơ sở dữ liệu.
-* **Can thiệp thủ công bổ trợ:** Quản trị viên vẫn có toàn quyền chủ động thêm/xóa IP blacklist hoặc bật/tắt Kill-Switch tại trang quản trị `AdminOperationsPage`.
+#### 2. Web ReadLN đã làm gì để thỏa mãn:
+* Hệ thống xây dựng dịch vụ **`AutoResponseService.ts`** vận hành khép kín theo chu trình **DETECT ➔ RESPOND tự động**:
+  * **Honeypot ➔ Chặn tự động:** Khi `antiBotMiddleware` bắt được bot điền trường ẩn ➔ `AutoResponseService` lập tức tự động thêm IP đó vào bảng `ip_blacklists` khóa 24 giờ và trả về HTTP `403 Forbidden`.
+  * **Spam Rate Limit ➔ Chặn tự động:** Khi một IP bị trả về mã 429 liên tiếp 3 lần trong 3 phút ➔ Hệ thống tự động nâng mức phạt, ghi IP vào `ip_blacklists` chặn hoàn toàn truy cập trong 1 giờ.
+  * **Dò mật khẩu ➔ Khóa IP tự động:** Khi một IP nhập sai mật khẩu từ 5 lần trở lên trong 5 phút ➔ Tự động khóa IP đó 2 giờ.
+  * **Chế độ Phong tỏa Khẩn cấp Kill-Switch (`lockdownMiddleware.ts`):** Quản trị viên có thể kích hoạt nút Kill-Switch để lập tức chuyển toàn bộ web sang chế độ **Chỉ Đọc (Read-Only - HTTP 503 cho mọi thao tác ghi `POST`, `PUT`, `DELETE`)** để bảo vệ toàn vẹn dữ liệu.
 
 #### 3. Lời trình bày thuyết minh:
-> *"Tại trụ cột **Respond**, điểm đặc biệt nhất của ReadLN là cơ chế **Phản ứng tự động khép kín dựa trên dữ liệu phát hiện (DETECT to RESPOND)**: Khi phát hiện bot điền bẫy Honeypot hoặc dò mật khẩu quá 5 lần, hệ thống lập tức tự động đưa IP vào Blacklist chặn truy cập 403; khi phát hiện dấu hiệu DDoS phân tán từ nhiều IP trong 1 phút, hệ thống tự động kích hoạt chế độ Kill-Switch Chỉ Đọc để bảo vệ cơ sở dữ liệu mà không cần chờ quản trị viên can thiệp thủ công."*
+> *"Thưa thầy/cô, ở trụ cột **Respond**, hệ thống đáp ứng tiêu chuẩn phản ứng **HOÀN TOÀN TỰ ĐỘNG DỰA TRÊN DỮ LIỆU CỦA DETECT**:  
+> 1. Khi DETECT phát hiện bot dính bẫy Honeypot ➔ RESPOND tự động đưa IP vào Blacklist khóa 24 giờ và ngắt kết nối với mã 403.  
+> 2. Khi DETECT phát hiện IP spam request vi phạm Rate Limit liên tiếp ➔ RESPOND tự động chặn IP đó 1 giờ trong Blacklist.  
+> 3. Ngoài ra, Admin có nút khẩn cấp Kill-Switch để ngay lập tức đưa web về chế độ Chỉ Đọc (HTTP 503) khi xảy ra tấn công diện rộng."*
 
 ---
 
-### TRỤ CỘT 5: RECOVER (Phục Hồi Dữ Liệu & Khôi Phục Vận Hành Thực Tế)
+### TRỤ CỘT 5: RECOVER (Phục Hồi Dữ Liệu & Vận Hành)
 
-#### 1. Mục tiêu tiêu chuẩn:
-Khôi phục nguyên trạng các dịch vụ, chức năng và dữ liệu đã bị ảnh hưởng sau khi xảy ra sự cố hoặc thao tác nhầm lẫn.
+#### 1. Trên Slide ghi gì:
+* **Khôi phục xóa mềm (Soft Delete):** Đánh dấu `is_deleted = true`, khôi phục nguyên trạng 1 chạm từ Thùng rác (`TrashRestoreTable`).
+* **Sao lưu cơ sở dữ liệu (Backup MySQL):** Xuất bản dump toàn bộ dữ liệu MySQL nén Gzip (`.sql.gz`) tải thẳng về máy tính quản trị viên.
 
-#### 2. ReadLN đã làm gì để thỏa mãn:
-* **Xuất Bản Sao Lưu MySQL Hoàn Chỉnh Thực Tế (`BackupService` & `BackupTriggerCard`):**
-  * Không chỉ là nút mô phỏng, dịch vụ `BackupService` kết nối trực tiếp vào MySQL, quét và kết xuất toàn bộ schema và dữ liệu của tất cả các bảng (`genres`, `stories`, `story_genres`, `chapters`, `users`, `bookmarks`, `ratings`, `comments`, `system_settings`).
-  * Tự động xuất thành file chuẩn SQL (`REPLACE INTO`, thiết lập `SET FOREIGN_KEY_CHECKS = 0; SET NAMES utf8mb4;`).
-  * Nén luồng dữ liệu bằng thuật toán **Gzip** (`.sql.gz`) và truyền trực tiếp về trình duyệt để quản trị viên tải bản sao lưu nguyên vẹn về máy tính trạm chỉ bằng một cú nhấp chuột.
-* **Cơ chế Xóa Mềm Chống Mất Dữ Liệu (Soft Delete):**
-  * Mọi hành động xóa truyện, xóa chương, hoặc ẩn bình luận trong ứng dụng **không bao giờ xóa cứng** (không dùng `DELETE FROM`) mà chỉ cập nhật cờ `is_deleted = true`.
-  * Dữ liệu hoàn toàn an toàn trước các hành vi phá hoại hoặc thao tác xóa nhầm của quản trị viên.
-* **Giao diện Khôi Phục Thùng Rác (Trash Restore Portal):**
-  * Tại `TrashRestoreTable`, hệ thống liệt kê toàn bộ các truyện, chương và bình luận đang bị đánh dấu `is_deleted = true` trong MySQL.
-  * Quản trị viên chỉ cần bấm nút **"Khôi phục"**, cờ sẽ được trả về `false` và nội dung lập tức hiển thị lại nguyên vẹn trên website.
-* **Khôi phục quyền truy cập tài khoản an toàn (Password Reset Flow):**
-  * Bảng `password_resets` quản lý token đặt lại mật khẩu với chuỗi băm ngẫu nhiên `token_hash`, thời hạn hết hạn `expires_at` và cờ `used = true` để đảm bảo mỗi liên kết chỉ được sử dụng duy nhất một lần.
+#### 2. Web ReadLN đã làm gì để thỏa mãn:
+* **Cơ chế Xóa Mềm (`Soft Delete`):** Mọi thao tác xóa truyện, chương, hoặc bình luận đều không dùng lệnh `DELETE` cứng mà chỉ cập nhật cờ `is_deleted = true`. Tại giao diện `TrashRestoreTable`, Admin có thể xem danh sách và bấm nút **"Khôi phục"** (`is_deleted = false`) để đưa dữ liệu trở lại website ngay lập tức.
+* **Dịch vụ Sao Lưu MySQL Thật (`BackupService.ts` & `BackupTriggerCard.tsx`):**
+  * Backend quét toàn bộ dữ liệu thực tế từ 9 bảng trong MySQL, xuất thành mã SQL hoàn chỉnh (`REPLACE INTO`, có cấu hình `SET FOREIGN_KEY_CHECKS = 0; SET NAMES utf8mb4;`).
+  * Tự động nén luồng dữ liệu bằng chuẩn **Gzip** (`.sql.gz`) và truyền trực tiếp về trình duyệt để quản trị viên tải file sao lưu nguyên vẹn về máy tính chỉ bằng một cú nhấp chuột.
 
 #### 3. Lời trình bày thuyết minh:
-> *"Cuối cùng ở trụ cột **Recover**, để đảm bảo tính sẵn sàng và khả năng phục hồi dữ liệu, ReadLN áp dụng chính sách Xóa mềm (Soft Delete) trên toàn bộ hệ thống giúp khôi phục dữ liệu tức thì từ Thùng rác. Đặc biệt, hệ thống tích hợp tính năng **Sao lưu cơ sở dữ liệu MySQL thật**: kết xuất toàn bộ dữ liệu ra file SQL nén Gzip và cho phép quản trị viên tải thẳng về máy tính để sẵn sàng khôi phục nguyên trạng hệ thống khi xảy ra sự cố."*
+> *"Cuối cùng ở trụ cột **Recover**, ReadLN áp dụng chính sách Xóa mềm (Soft Delete) trên toàn bộ hệ thống giúp khôi phục dữ liệu tức thì từ Thùng rác nếu bị xóa nhầm. Đặc biệt, hệ thống tích hợp tính năng **Sao lưu cơ sở dữ liệu MySQL thật**: tự động kết xuất toàn bộ dữ liệu ra file SQL nén Gzip (.sql.gz) và cho phép quản trị viên tải thẳng về máy tính để sẵn sàng phục hồi nguyên trạng hệ thống khi xảy ra sự cố."*
 
 ---
 
@@ -139,21 +115,22 @@ Khôi phục nguyên trạng các dịch vụ, chức năng và dữ liệu đã
 
 | Tiêu chuẩn NIST CSF 1.1 | Chức năng & Thành phần trên Web ReadLN | Tệp tin / Endpoint tương ứng trong Source Code |
 | :--- | :--- | :--- |
-| **1. IDENTIFY** | Phân loại 3 vùng dữ liệu MySQL; Quét lỗ hổng OWASP ZAP; Cấu hình HTTP Security Headers & CSP. | `vite.config.ts`, `index.html`, `prisma/schema.prisma` |
-| **2. PROTECT** | HttpOnly Cookie, Brute-force lockout, RBAC, Lọc XSS sanitizeHtml, Honeypot bot trap, Mã hóa RAM, Thủy vân Zero-Width. | `authMiddleware.ts`, `watermarkService.ts`, `cryptoService.ts`, `CommentSection.tsx` |
-| **3. DETECT** | Lưu vết kiểm toán `audit_logs`, Dashboard an ninh 24h, Phân tích log, Giải mã thủy vân tìm kẻ leak truyện. | `auditLogger.ts`, `AdminDashboardPage.tsx`, `WatermarkDecoder.tsx`, `adminController.ts` |
-| **4. RESPOND** | **Tự động phản ứng từ Detect**: Auto-block IP khi dính Honeypot/Brute-force/Rate-limit; Tự động kích hoạt Kill-Switch Read-Only khi phát hiện DDoS; Quản lý IP Blacklist. | `autoResponseService.ts`, `rateLimiter.ts`, `antiBotMiddleware.ts`, `lockdownMiddleware.ts`, `KillSwitchModal.tsx` |
-| **5. RECOVER** | **Sao lưu dữ liệu MySQL thật** (kết xuất SQL nén Gzip tải về máy), Xóa mềm `is_deleted = true`, Khôi phục thùng rác 1-click, Khôi phục mật khẩu an toàn. | `backupService.ts`, `BackupTriggerCard.tsx`, `TrashRestoreTable.tsx`, `userRoutes.ts`, `adminController.ts` |
+| **1. IDENTIFY** | Quét lỗ hổng bằng OWASP ZAP; Bổ sung các HTTP Security Headers (`X-Frame-Options`, `X-Content-Type-Options`, `CSP`). | `vite.config.ts`, `index.html` |
+| **2. PROTECT** | Mã hóa RAM Base64 UTF-8; Chống sao chép (khóa chuột phải, `Ctrl+C`, `Ctrl+U`, `F12`); Thủy vân Zero-Width; Băm Bcrypt + HttpOnly Cookie. | `cryptoService.ts`, `AntiCopyWrapper.tsx`, `watermarkService.ts`, `authController.ts` |
+| **3. DETECT** | Bẫy Bot Honeypot; Giám sát tần suất Rate Limit; Phát hiện dò mật khẩu (`AUTH_FAILED`); Audit Logs & Watermark Decoder. | `antiBotMiddleware.ts`, `rateLimiter.ts`, `auditLogger.ts`, `WatermarkDecoder.tsx` |
+| **4. RESPOND** | **Tự động phản ứng từ Detect**: Honeypot ➔ Tự động chặn IP; Chặn IP truy cập nhiều (Spam Rate Limit); Nút khẩn cấp Kill-Switch (Chỉ đọc). | `autoResponseService.ts`, `antiBotMiddleware.ts`, `rateLimiter.ts`, `lockdownMiddleware.ts` |
+| **5. RECOVER** | Khôi phục xóa mềm (`is_deleted = false`) qua Thùng rác; Sao lưu cơ sở dữ liệu MySQL (kết xuất file `.sql.gz` tải về máy). | `TrashRestoreTable.tsx`, `backupService.ts`, `BackupTriggerCard.tsx` |
 
 ---
 
-## 💡 CÁCH TRẢ LỜI CÁC CÂU HỎI HỘI ĐỒNG THƯỜNG GẶP
+## 💡 CÁCH TRẢ LỜI CÂU HỎI HỘI ĐỒNG THƯỜNG GẶP
 
-1. **Hỏi: "Phần RESPOND của em hoạt động như thế nào, có liên kết với DETECT không và có tự động không?"**  
-   * **Trả lời:** *"Dạ thưa thầy/cô, hệ thống RESPOND của em hoạt động **hoàn toàn tự động dựa trên tín hiệu phát hiện từ DETECT** thông qua dịch vụ `AutoResponseService`:  
-     - Khi DETECT phát hiện bot điền bẫy Honeypot: RESPOND lập tức tự động đưa IP vào danh sách đen khóa 24 giờ.  
-     - Khi DETECT phát hiện một IP đăng nhập sai quá 5 lần hoặc vi phạm Rate Limit liên tiếp: RESPOND tự động chặn IP đó trong 1-2 giờ.  
-     - Đặc biệt, khi DETECT phát hiện tấn công phân tán từ hơn 10 IP khác nhau trong vòng 60 giây, RESPOND sẽ tự động bật nút khẩn cấp Kill-Switch chuyển web sang chế độ Chỉ Đọc (Read-Only) để bảo vệ toàn vẹn cơ sở dữ liệu."*
+1. **Hỏi: "Thầy yêu cầu phần RESPOND phải là tự động và dựa vào DETECT, em đã làm được chưa và hoạt động ra sao?"**  
+   * **Trả lời:** *"Dạ thưa thầy, phần RESPOND của em hoạt động **hoàn toàn tự động dựa trên tín hiệu từ DETECT** thông qua `AutoResponseService`:  
+     - Khi DETECT phát hiện bot điền bẫy Honeypot ➔ RESPOND lập tức tự động đưa IP vào Blacklist khóa 24h và trả mã 403.  
+     - Khi DETECT phát hiện một IP spam vượt ngưỡng Rate Limit liên tiếp ➔ RESPOND tự động nâng mức phạt lên chặn IP 1 giờ trong Blacklist.  
+     - Khi DETECT phát hiện một IP dò mật khẩu sai từ 5 lần trở lên ➔ RESPOND tự động khóa IP đó 2 giờ.  
+     Tất cả đều diễn ra tự động trong mili-giây mà không cần Admin phải trực can thiệp thủ công."*
 
-2. **Hỏi: "Tính năng Sao lưu cơ sở dữ liệu ở RECOVER hoạt động như thế nào?"**  
-   * **Trả lời:** *"Dạ, ở phần RECOVER, em đã xây dựng dịch vụ `BackupService` kết nối trực tiếp với MySQL để đọc toàn bộ dữ liệu các bảng, tạo thành file mã SQL chuẩn (`REPLACE INTO`, có kiểm soát khóa ngoại và bảng mã `utf8mb4`), sau đó nén nhị phân bằng thuật toán Gzip (`.sql.gz`) và truyền trực tiếp về trình duyệt để quản trị viên tải về máy tính trạm lưu trữ an toàn."*
+2. **Hỏi: "Chức năng Sao lưu (Backup) ở phần RECOVER hoạt động như thế nào?"**  
+   * **Trả lời:** *"Dạ, ở phần RECOVER, em xây dựng dịch vụ `BackupService` kết nối trực tiếp vào MySQL để đọc toàn bộ cấu trúc và dữ liệu của tất cả các bảng, sinh ra file SQL chuẩn utf8mb4, nén nhị phân bằng Gzip (`.sql.gz`) và truyền trực tiếp về trình duyệt để quản trị viên tải về máy tính lưu trữ an toàn."*
